@@ -9,11 +9,16 @@ public class Snake {
 	private LinkedList<BodySegment> segments;
 	private double deltaX;
 	private double deltaY;
+	// Speed (in milliseconds). A lower value means the snake moves faster.
+	int speed = 100;  // starting speed
+	
 	
 	public Snake() {
-		//FIXME - set up the segments instance variable
-		deltaX = 0;
-		deltaY = 0;
+		segments = new LinkedList<>();
+        deltaX = MOVEMENT_SIZE;
+        deltaY = 0;
+        // Start with one segment at the center of the screen
+        segments.add(new BodySegment(0.5, 0.5, SEGMENT_SIZE));
 	}
 	
 	public void changeDirection(int direction) {
@@ -36,15 +41,28 @@ public class Snake {
 	 * Moves the snake by updating the position of each of the segments
 	 * based on the current direction of travel
 	 */
-	public void move() {
-		//FIXME
+	public void move() { //Moves the snake's head in the current direction and shifts the body segments to follow.
+		double newX = segments.getFirst().getX() + deltaX;
+        double newY = segments.getFirst().getY() + deltaY;
+
+        // Move body segments by updating their positions
+        for (int i = segments.size() - 1; i > 0; i--) {
+            BodySegment current = segments.get(i);
+            BodySegment previous = segments.get(i - 1);
+            current.setPosition(previous.getX(), previous.getY());
+        }
+
+        // Move the head
+        segments.getFirst().setPosition(newX, newY);
 	}
 	
 	/**
 	 * Draws the snake by drawing each segment
 	 */
 	public void draw() {
-		//FIXME
+		for (BodySegment segment : segments) {
+            segment.draw();
+        }
 	}
 	
 	/**
@@ -53,8 +71,19 @@ public class Snake {
 	 * @return true if the snake successfully ate the food
 	 */
 	public boolean eatFood(Food f) {
-		//FIXME
-		return false;
+		BodySegment head = segments.getFirst();
+        double distance = Math.sqrt(Math.pow(head.getX() - f.getX(), 2) + Math.pow(head.getY() - f.getY(), 2));
+        if (distance <= SEGMENT_SIZE) { // If the distance is less than or equal to the size of the food
+            // Add a new segment at the tail's position
+            BodySegment tail = segments.getLast();
+            segments.add(new BodySegment(tail.getX(), tail.getY(), SEGMENT_SIZE)); 
+            // Increase speed slightly (decrease the delay)
+            if (speed > 20) {  // To prevent the snake from becoming too fast
+                speed -= 10;  // Decrease the delay (makes the snake faster)
+            }
+            return true;  // Food eaten, return true
+        }
+        return false;
 	}
 	
 	/**
@@ -62,7 +91,11 @@ public class Snake {
 	 * @return whether or not the head is in the bounds of the window
 	 */
 	public boolean isInbounds() {
-		//FIXME
-		return true;
+		BodySegment head = segments.getFirst();
+        return head.getX() >= 0 && head.getX() <= 1 && head.getY() >= 0 && head.getY() <= 1;
+	}
+	
+	public int snakeSize() {
+		return segments.size();
 	}
 }
